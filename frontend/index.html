@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>music click</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/mojangles" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Mojangles', 'Press Start 2P', monospace;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 28px;
+            margin-bottom: 32px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .input-container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .lyrics-input {
+            width: 100%;
+            height: 120px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid #ffffff;
+            color: #ffffff;
+            font-family: 'Mojangles', 'Press Start 2P', monospace;
+            font-size: 14px;
+            padding: 20px;
+            resize: none;
+            outline: none;
+            border-radius: 0;
+        }
+
+        .lyrics-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .lyrics-input:focus {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .floating-text {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 10px;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+
+        .background-lyrics {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 24px;
+                margin-bottom: 30px;
+            }
+            
+            .lyrics-input {
+                font-size: 10px;
+                height: 150px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-lyrics" id="backgroundLyrics"></div>
+    
+    <div class="main-container">
+        <h1 class="title">music click</h1>
+        <div class="input-container">
+            <textarea 
+                class="lyrics-input" 
+                placeholder="paste your lyrics here..."
+                id="lyricsInput"
+            ></textarea>
+        </div>
+    </div>
+
+    <script>
+        // 'Pretender' by Jane Remover
+        const sampleLyrics = [
+            "the", "things", "id", "do", "to", "get", "a", "good", "nights", "sleep",
+            "it", "wont", "add", "up", "to", "things", "that", "youd", "say", "to", "me",
+            "so", "id", "try", "every", "night", "to", "clear", "things", "out", "my", "head",
+            "and", "if", "it", "doesnt", "work", "id", "blame", "it", "all", "on", "my", "own", "bed",
+            "so", "id", "try", "every", "night", "to", "clear", "things", "out", "my", "head",
+            "oh", "whens", "the", "next", "time", "that", "a", "superhero", "saves", "my", "town",
+            "cause", "ive", "been", "falling", "for", "quite", "a", "while", "now",
+            "so", "i", "gotta", "make", "the", "best", "of", "my", "aching",
+            "oh", "how", "i", "lie", "in", "bed", "and", "feel", "like", "dying",
+            "its", "all", "fun", "and", "games", "till", "youre", "star", "of", "the", "show",
+            "a", "brave", "man", "once", "told", "me", "that", "i", "should", "go",
+            "go", "oh", "how", "i", "lie", "in", "bed", "and", "feel", "like", "dying",
+            "die", "die", "die", "put", "on", "my", "best", "clothes", "im", "going", "out", "today",
+            "its", "nothing", "so", "special", "one", "vessel", "one", "body", "neglect", "it", "im", 
+            "sorry", "ill", "take", "better", "care", "of", "myself", "pretend", "some", "more"
+        ];
+
+        class FloatingText {
+            constructor(text, container) {
+                this.text = text;
+                this.container = container;
+                this.element = this.createElement();
+                this.x = Math.random() * window.innerWidth;
+                this.y = Math.random() * window.innerHeight;
+                // Always moving with random speeds between 0.3 and 1.2
+                this.baseVx = (Math.random() - 0.5) * 1.2 + (Math.random() > 0.5 ? 0.3 : -0.3);
+                this.baseVy = (Math.random() - 0.5) * 1.2 + (Math.random() > 0.5 ? 0.3 : -0.3);
+                this.vx = this.baseVx;
+                this.vy = this.baseVy;
+                this.repelRadius = 100;
+                this.repelStrength = 3;
+                
+                this.updatePosition();
+                this.container.appendChild(this.element);
+            }
+
+            createElement() {
+                const element = document.createElement('div');
+                element.className = 'floating-text';
+                element.textContent = this.text;
+                return element;
+            }
+
+            updatePosition() {
+                this.element.style.left = this.x + 'px';
+                this.element.style.top = this.y + 'px';
+            }
+
+            update(mouseX, mouseY) {
+                // Start with base floating movement
+                this.vx = this.baseVx;
+                this.vy = this.baseVy;
+
+                // Calculate distance to mouse
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Apply repelling force if mouse is close
+                if (distance < this.repelRadius && distance > 0) {
+                    const force = (this.repelRadius - distance) / this.repelRadius;
+                    const repelX = -(dx / distance) * force * this.repelStrength;
+                    const repelY = -(dy / distance) * force * this.repelStrength;
+                    
+                    this.vx += repelX;
+                    this.vy += repelY;
+                }
+
+                // Update position with current velocity
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Bounce off screen edges
+                if (this.x > window.innerWidth - 20) {
+                    this.x = window.innerWidth - 20;
+                    this.baseVx = -Math.abs(this.baseVx); // Reverse and ensure negative
+                    this.vx = this.baseVx;
+                }
+                if (this.x < 20) {
+                    this.x = 20;
+                    this.baseVx = Math.abs(this.baseVx); // Reverse and ensure positive
+                    this.vx = this.baseVx;
+                }
+                if (this.y > window.innerHeight - 20) {
+                    this.y = window.innerHeight - 20;
+                    this.baseVy = -Math.abs(this.baseVy); // Reverse and ensure negative
+                    this.vy = this.baseVy;
+                }
+                if (this.y < 20) {
+                    this.y = 20;
+                    this.baseVy = Math.abs(this.baseVy); // Reverse and ensure positive
+                    this.vy = this.baseVy;
+                }
+
+                this.updatePosition();
+            }
+        }
+
+        class FloatingLyricsManager {
+            constructor() {
+                this.container = document.getElementById('backgroundLyrics');
+                this.floatingTexts = [];
+                this.mouseX = 0;
+                this.mouseY = 0;
+                
+                this.init();
+                this.bindEvents();
+                this.animate();
+            }
+
+            init() {
+                // Create floating text elements
+                for (let i = 0; i < 50; i++) {
+                    const randomLyric = sampleLyrics[Math.floor(Math.random() * sampleLyrics.length)];
+                    this.floatingTexts.push(new FloatingText(randomLyric, this.container));
+                }
+            }
+
+            bindEvents() {
+                document.addEventListener('mousemove', (e) => {
+                    this.mouseX = e.clientX;
+                    this.mouseY = e.clientY;
+                });
+
+                window.addEventListener('resize', () => {
+                    // Redistribute floating texts on resize
+                    this.floatingTexts.forEach(text => {
+                        if (text.x > window.innerWidth) text.x = window.innerWidth - 50;
+                        if (text.y > window.innerHeight) text.y = window.innerHeight - 50;
+                    });
+                });
+            }
+
+            animate() {
+                this.floatingTexts.forEach(text => {
+                    text.update(this.mouseX, this.mouseY);
+                });
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize the floating lyrics system when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new FloatingLyricsManager();
+        });
+
+        // Add some subtle interaction to the input
+        const lyricsInput = document.getElementById('lyricsInput');
+        lyricsInput.addEventListener('focus', () => {
+            lyricsInput.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+        });
+
+        lyricsInput.addEventListener('blur', () => {
+            lyricsInput.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        });
+    </script>
+</body>
+</html>
