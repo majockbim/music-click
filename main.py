@@ -5,8 +5,7 @@
 '''
 import sys
 
-from core.syllable_processor import SyllableProcessor
-from core.word_processor import WordProcessor
+from core.text_processor import TextProcessor
 from utilities.input import LyricsInput
 
 try:
@@ -36,18 +35,18 @@ def choose_mode():
     return choice
 
 def main():
+    processor = TextProcessor()
+    lyrics = LyricsInput().lyrics_input()
+    
     mode = choose_mode()
     if mode == '1':
-        text = SyllableProcessor().syllables(LyricsInput().lyrics_input())
+        text = processor.process_syllables(lyrics)
+        print("Syllable mode selected. Press space to see the next syllable, or 'q' to quit.")
     elif mode == '2':
-        text = WordProcessor().process(LyricsInput().lyrics_input())
+        text = processor.process_words(lyrics)
+        print("Word mode selected. Press space to see the next word, or 'q' to quit.")
 
     text = text.split()
-
-    # print("You entered the following lyrics: \n")
-    # print(text)
-
-    print("Press space to see the next word, or 'q' to quit.")
 
     i = 0
     while i < len(text):
@@ -58,7 +57,7 @@ def main():
             i += 1
         elif key == 'q':
             break
-        elif key == '\x03': # Ctrl+C
+        elif key == '\x03':  # Ctrl+C
             break
 
     print("Thank you for testing.")
