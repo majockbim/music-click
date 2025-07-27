@@ -6,6 +6,7 @@
 import sys
 
 from core.syllable_processor import SyllableProcessor
+from core.word_processor import WordProcessor
 from utilities.input import LyricsInput
 
 try:
@@ -24,22 +25,36 @@ except ImportError:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return key
 
-def main():
-    text = SyllableProcessor().syllables(LyricsInput().lyrics_input())
+def choose_mode():
+    print("Choose your desired mode: ")
+    print("1. Syllable Mode")
+    print("2. Word Mode")
+    choice = input("Enter the number of your choice: ")
+    while choice not in ['1', '2']:
+        print("Invalid choice. Please enter 1 or 2.")
+        choice = input("Enter the number of your choice: ")
+    return choice
 
-    syllables = text.split()
+def main():
+    mode = choose_mode()
+    if mode == '1':
+        text = SyllableProcessor().syllables(LyricsInput().lyrics_input())
+    elif mode == '2':
+        text = WordProcessor().process(LyricsInput().lyrics_input())
+
+    text = text.split()
 
     # print("You entered the following lyrics: \n")
     # print(text)
 
-    print("Press space to see the next syllable, or 'q' to quit.")
+    print("Press space to see the next word, or 'q' to quit.")
 
     i = 0
-    while i < len(syllables):
+    while i < len(text):
         key = get_key()
 
         if key == ' ':
-            print(syllables[i])
+            print(text[i])
             i += 1
         elif key == 'q':
             break
